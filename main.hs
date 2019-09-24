@@ -100,7 +100,7 @@ main = do
   
   let res = orderByElem(orderByGroup (classify coord classes))
 
-  print res
+  mapM_ print (res)
 
 
 
