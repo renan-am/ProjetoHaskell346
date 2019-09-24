@@ -33,9 +33,11 @@ check ((_,x):xs) (a:_)
       | x == a = True
       | otherwise = check' xs a
 
-sqDiff a b = (a-b)**2
+sqDiff a b = ((read a :: Float)-(read b :: Float))**2
 
-dist a b = foldl1 (+) (zipWith sqDiff a b)
+dist (_:a) (_:b) = foldl1 (+) (zipWith sqDiff a b)
+
+calc a b = [dist x y | x <- a, y <- b]
 
 main = do 
   txt <- getContents
@@ -51,9 +53,12 @@ main = do
   let noLabel = [x | x <- coord, not(check classes x)]
   print noLabel
 
-  let label = [x | x <- coord, not(check classes x)]
+  let label = [x | x <- coord, (check classes x)]
   print label
 
   let aux = check classes ["aab"]
   print aux
+
+  let aux2 = calc noLabel label
+  print aux2
 
