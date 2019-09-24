@@ -33,18 +33,24 @@ check' (x:xs) a
   | x == a = True
   | otherwise = check' xs a
 
-sqDiff a b = ((read a :: Float)-(read b :: Float))**2
 
-dist (x:a) (y:b) = (x,y,foldl1 (+) (zipWith sqDiff a b))
-
+{--
+    a = Elementos sem Label (NoLabel)
+    b = Elementos com Label (Label)
+--}
 getDist a b = [dist x y | x <- a, y <- b]
+  where
+    dist (x:a) (y:b) = (x,y,foldl1 (+) (zipWith sqDiff a b))
+      where
+        sqDiff a b = ((read a :: Float)-(read b :: Float))**2
+
 
 addLabel a b = addLabel' a b []
   where 
     addLabel' [] _ res = res
-    addLabel' ((y,x):xs) ((a,b)) res
+    addLabel' ((y,x):xs) ((a,b,c)) res
       | (check' x b) == True = res ++ ((y,(a:x)):xs)
-      | otherwise = addLabel' xs (a,b) ((y,x):res)
+      | otherwise = addLabel' xs (a,b,c) ((y,x):res)
 
 compara (a,b,c) (x,y,z) = if c < z then
   (a,b,c)
@@ -53,35 +59,53 @@ compara (a,b,c) (x,y,z) = if c < z then
 
 checkLabel x = foldl1 (compara) x
 
+getLabel c cl = [x | x <- c, (check cl x)]
+getNoLabel c cl = [x | x <- c, not(check cl x)]
+
+classify c cl = classify' c cl (getLabel c cl) (getNoLabel c cl)
+  where 
+    classify' _ cl _ [] = cl
+    classify' c cl l nL = classify' c cl' (getLabel c cl') (getNoLabel c cl')
+      where
+        cl' = addLabel cl ((checkLabel  (getDist nL l )))
+
+
+
+
+orderByGroup [] = []
+orderByGroup (x:xs) = orderByGroup menores ++ [x] ++ orderByGroup maiores
+  where  
+    menores = [y | y <- xs, compara' y x]
+    maiores = [y | y <- xs, not(compara' y x)]
+        
+compara' (a,_) (b,_) = a <= b 
+
+orderByElem [] = []
+orderByElem ((a,b):xs) = ((a,(orderByElem' b)):orderByElem xs)
+
+orderByElem' [] = []
+orderByElem' (x:xs) = orderByElem' less ++ [x] ++ orderByElem' more
+  where
+    less = [y | y <- xs, y<=x]
+    more = [y | y <- xs, y>x] 
+
+
 
 main = do 
   txt <- getContents
   let dat = prepare txt
-  
+
   let classes = getClass dat 
   let coord = getCoord dat
+  
+  let res = orderByElem(orderByGroup (classify coord classes))
 
-  print dat
-  print classes
-  print coord
+  print res
 
-  let noLabel = [x | x <- coord, not(check classes x)]
-  print noLabel
 
-  let label = [x | x <- coord, (check classes x)]
-  print label
 
-  let aux = check classes ["aab"]
-  print aux
+  -- let aux = orderByElem res
+  -- print aux
 
-  let aux2 = getDist noLabel label
-  print aux2
-
-  let aux3 = addLabel classes ("ez34","aa")
-  print aux3
-
-  let tst = zipWith sqDiff ["5","4","2"] ["1","7","3"]
-  print tst
-
-  let aux4 = checkLabel aux2
-  print aux4
+  -- let res2 =  addLabel classes ((checkLabel  (getDist (getNoLabel coord classes) (getLabel coord classes))))
+  -- print res2
