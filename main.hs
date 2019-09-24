@@ -27,17 +27,32 @@ check [] _ = False
 check ((_,x):xs) (a:_)
   | (check' x a) == True = True
   | otherwise = check xs [a]
-  where
-    check' [] _ = False
-    check' (x:xs) a
-      | x == a = True
-      | otherwise = check' xs a
+
+check' [] _ = False
+check' (x:xs) a
+  | x == a = True
+  | otherwise = check' xs a
 
 sqDiff a b = ((read a :: Float)-(read b :: Float))**2
 
-dist (_:a) (_:b) = foldl1 (+) (zipWith sqDiff a b)
+dist (x:a) (y:b) = (x,y,foldl1 (+) (zipWith sqDiff a b))
 
-calc a b = [dist x y | x <- a, y <- b]
+getDist a b = [dist x y | x <- a, y <- b]
+
+addLabel a b = addLabel' a b []
+  where 
+    addLabel' [] _ res = res
+    addLabel' ((y,x):xs) ((a,b)) res
+      | (check' x b) == True = res ++ ((y,(a:x)):xs)
+      | otherwise = addLabel' xs (a,b) ((y,x):res)
+
+compara (a,b,c) (x,y,z) = if c < z then
+  (a,b,c)
+  else
+  (x,y,z)
+
+checkLabel x = foldl1 (compara) x
+
 
 main = do 
   txt <- getContents
@@ -59,6 +74,14 @@ main = do
   let aux = check classes ["aab"]
   print aux
 
-  let aux2 = calc noLabel label
+  let aux2 = getDist noLabel label
   print aux2
 
+  let aux3 = addLabel classes ("ez34","aa")
+  print aux3
+
+  let tst = zipWith sqDiff ["5","4","2"] ["1","7","3"]
+  print tst
+
+  let aux4 = checkLabel aux2
+  print aux4
