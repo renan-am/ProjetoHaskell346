@@ -13,7 +13,7 @@ prepare a = split (lines a)
         split' [] res = res
         split' (x:xs) res = split' xs  (res ++ [(words x)])
 
---Função que separa os pontos que são label em uma nova lista
+--Função que cria tuplas para cada classe(label), constituídas de (label,[lista de pontos])
 getClass [] = []
 getClass (x:xs)
   | x == [] = getClass' xs []
@@ -23,7 +23,7 @@ getClass (x:xs)
     getClass' ([a,b]:xs) res = getClass' xs ((read b :: Int,[a]):res)
 
 
---Função que separa os pontos que não são label em uma nova lista
+--Função que separa as coordenas de cada ponto em uma nova lista
 getCoord x = getCoord' x []
   where
     getCoord' [] res = res
@@ -31,8 +31,7 @@ getCoord x = getCoord' x []
       | x == [] = res
       | otherwise = getCoord' xs (x:res)
 
---Verifica se existem pontos da lista não label que já são classificados
---e os coloca em uma lista de pontos
+--Verifica se um ponto já está classificado com uma label
 check [] _ = False
 check ((_,x):xs) (a:_)
   | (check' x a) == True = True
@@ -46,7 +45,7 @@ check' (x:xs) a
 {--
     a = lista de elementos sem Label (NoLabel)
     b = lista de elementos com Label (Label)
-    Função que retorna a distância ao quadrado entre dois pontos
+    Função que retorna uma lista de tuplas com o nome de dois pontos e a distância ao quadrado entre eles
 --}
 getDist a b = [dist x y | x <- a, y <- b]
   where
@@ -74,6 +73,7 @@ checkLabel x = foldl1 (compara) x
 getLabel c cl = [x | x <- c, (check cl x)]
 getNoLabel c cl = [x | x <- c, not(check cl x)]
 
+-- Função que dado uma lista de pontos com suas coordenadas, e uma lista de pontos com label, classifica os pontos a partir do ponto mais próximo de um ponto com label
 classify c cl = classify' c cl (getLabel c cl) (getNoLabel c cl)
   where 
     classify' _ cl _ [] = cl
